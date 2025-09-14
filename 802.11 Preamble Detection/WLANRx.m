@@ -50,14 +50,11 @@ classdef  WLANRx <  matlab.System
         end
 
         function compPreamble(obj)
-            % Computes the preamble components
-
-            % TODO:  Compute the LSTF and LLTF components of the premable
-            % using the wlanLSTF and wlanLLTF methods.  Store them in
-            % obj.lstf and obj.lltf
+            % -------wlanLSTF % wlanLLTF 는 해당 설정에맞는 프리엠블을 만들어줍니다,----------
             %   obj.lstf = wlanLSTF(...);
-            %   obj.lltf = wlanLLTF(...);        
-            
+            %   obj.lltf = wlanLLTF(...);   
+            obj.lstf=wlanLSTF(obj.cfg);
+            obj.lltf=wlanLLTF(obj.cfg);
         end
 
 
