@@ -28,7 +28,7 @@ classdef RxFilt < matlab.System
                 opt.Fst (1,1) {mustBeNumeric} = 25e6;               
                 opt.Astop (1,1) {mustBeNumeric} = 40;
                 opt.rxFS (1,1) {mustBeNumeric} = 2^12;
-                opt.rxScale (1,1) {boolean} = false;                
+                opt.rxScale (1,1) {logical} = false;                
             end
 
             % TxFilt Constructor
