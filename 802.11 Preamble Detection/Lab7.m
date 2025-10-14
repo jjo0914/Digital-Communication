@@ -93,6 +93,7 @@ nsampOut = 2^14;            % number of samples of output
 
 % 채널은 64탭? 많으면연산량증가 등..
 % 채널 sinc도 아무런 지연이없으면 채널 임펄스함수랑 결과가 같다
+% 하지만 분수지연은 임펄스가 구현x sinc함수를쓴
 chan = RandDelayChan('dlyRange', dlyRange, 'fsamp', fsampUp,...
     'gain', gain, 'wvar', wvar, 'nsampOut', nsampOut);
 
@@ -110,6 +111,7 @@ hold on;
 yLimits = ylim; % Get current y-axis limits
 xline(dlyus, 'r--', 'Delay');
 ylim(yLimits); % Restore y-axis limits
+ylabel('Time(us)');
 hold off;
 % TODO:  Set the passband and stopband frequencies as before
 %  업샘플링된 신호니깐 패스밴스스탑밴드 다시설정
@@ -251,7 +253,7 @@ end
 % detection is low once the SNR is about 2 dB.
 figure;
 plot(snrTest,pmd);
-xlabel('SNR');ylabel('Packet Detection 확률');
+xlabel('SNR(dB)');ylabel('Packet Detection 확률');
 ylim([0 1.2]);
 % TODO:  Compute the delay offset
 %    dlyOff = ...
@@ -283,187 +285,185 @@ for iplot = 1:nplot
 end
 
 
-%----------------SDR 전송파트----------------------------------
-% TODO:  Set parameters
-% Set to true for loopback, else set to false
-loopback = true; % true 1개 false 2개  
-
-% Select to run TX and RX
-runTx = true;
-runRx = true;
-
-% Flag indicating if pre-recorded data is to be used
-usePreRecorded = false;
-saveData = false;
-
-% Compute the signal bandwidth
-info = wlanNonHTOFDMInfo('NonHT-Data');
-sigBW = (max(info.ActiveFFTIndices)-min(info.ActiveFFTIndices)+1)/info.FFTLength*fsamp;
-
-
-% Intialize the communication objects
-wlantx = WLANTx('psduLen', 512);
-wlanrx = WLANRx('psduLen', 512);
-fsamp = wlantx.fsamp;
-ovRatio = 2;
-fsampUp = fsamp*ovRatio;
-txFilt = TxFilt('rateIn', fsamp, 'Fp', Fp, 'Fst', Fst, 'ovRatio', ovRatio, 'backoffAutoScale', true, ...
-    'backoffLev', backoffLev);
-rxFilt = RxFilt('ovRatio', ovRatio, 'rateIn', fsampUp, 'Fp', Fp, 'Fst', Fst, 'rxScale', true); % -> true로바꼇넼
-
-
-% TODO:  Generate a random packet using wlantx()
-%    x = ... 
-x=wlantx();
-xup=txFilt(x);
-% Set the packet length
-wlanrx.set('pktLen', length(x)); %? 원래패킷의 길이?
-% clear previous instances
-clear devtx devrx
-% Set the parameters.  Note that we capture twice the number of samples
-% to ensure that we always have a full packet in the window
-nsampsFrameTx = length(xup); % 만샘플= 보내는  샘플갯수 =1프레임?
-nsampsFrameRx = 2*length(xup); % 받는샘플갯수는 더많이
-centerFrequency = 2.4e9; % 보내는 주파수 2.4GHZ 
-
-% Run the creation function.  Skip this if we are using pre-recorded
-% samples
-if ~usePreRecorded
-    [devtx, devrx] = plutoCreateTxRx(createTx = runTx, createRx = runRx, loopback = loopback, ...
-        nsampsFrameTx = nsampsFrameTx, nsampsFrameRx=nsampsFrameRx, sampleRate = fsampUp, ...
-        centerFrequency=centerFrequency);
-
-end
-
-
-if runTx
-    % TODO:  Use the devtx.release() and devtx.transmitRepeat() commands to
-    % continuously send xup
-    devtx.release();
-    devtx.transmitRepeat(xup);
-
-end
-
-
-if usePreRecorded  
-    load singData;
-else
-    % 12비트 fullscale로 조정안하는 이유 -? RxFilt 에서 함
- 
-    % TODO:  Capture data at the upsampled rate.  Capture nsampsFrameRx.
-    %   rup = rx.capture(...)    
-
-    rup=devrx.capture(nsampsFrameRx);% 프레임당 샘플 명시!
-    
-end
-
-
-
-% TODO:  Down-sample
-%   r = rxFilt(...);
-r=rxFilt(rup);
-% TODO:  Run detection with the rx.pktDetect method.  
-wlanrx.detectSTF(r);
-
-% TODO:  Plot wlanrx.rhoSTF vs. time in us
-t=0:1/fsamp:1/fsamp*(length(wlanrx.rhoSTF)-1); 
-figure;
-plot(t*1e6,wlanrx.rhoSTF) ; 
-
-%--------------------Continous Monitoring-----------------------
-% Number of iterations
-nit = 100;
-
-% Initialize arrays to store data
-rhoMax = zeros(nit,1);                  
-rxTime = zeros(nit,1);
-
-% Initialize plots
-clf;
-subplot(1,2,1);
-rhoMaxToNow = [0,0];
-timeToNow = [0,3];
-prhoMax = plot(timeToNow,rhoMaxToNow, 'o-', 'LineWidth', 2);
-ylim([0,1]);
-xlabel('Time [sec]');
-ylabel('rhoMax');
-grid on;
-
-subplot(1,2,2);
-n = length(wlanrx.rhoSTF);
-trho = (0:n-1)/fsamp*1e6;
-rhoSTF = wlanrx.rhoSTF;
-prho = plot(trho, rhoSTF);
-ylim([0,1]);
-xlabel('Time [us]');
-ylabel('rho');
-grid on;
-
-
-% Set pointers to X and Y data for both plots
-prhoMax.XDataSource = 'timeToNow';
-prhoMax.YDataSource = 'rhoMaxToNow';
-prho.XDataSource = 'trho';
-prho.YDataSource = 'rhoSTF';
-
-% Initialize array to save data
-measData = zeros(nsampsFrameRx, nit);
-
-% Load pre-recorded data if need
-if usePreRecorded
-    load multData;
-    
-end
-
-for it = 1:nit
-    
-  
-    if usePreRecorded
-        rup = measData(:,it);
-
-    else
-        % TODO:  Get the data
-        %  rup = devrx.capture(...)
-        
-         rup=devrx.capture(nsampsFrameRx);
-        % Get the time
-        if (it==1)
-            tic; % 시작시간
-        end    
-        rxTime(it) = toc(); %끝난시간
-    end
-    if saveData
-        measData(:,it) = rup;
-    end
-      
-    
-
-    % TODO:  Down-sample
-    %   r = rxFilt(...);
-    
-    r=rxFilt(rup);
-    % TODO:  Run detection with the wlanrx.pktDetect method.  
-    wlanrx.detectSTF(r);
-
-    
-    % Get the STF correlation and create the vectors to plot
-    n = length(wlanrx.rhoSTF);
-    trho = (0:n-1)/fsamp*1e6;
-    rhoSTF = wlanrx.rhoSTF;
-
-    % TODO:  Get the maximum correlation
-    %   rhoMax(it) = ...    
-   rhoMax(it)=max(rhoSTF);wlanrx.detectSTF(r);
-     
-    % Update the plots   
-    timeToNow = rxTime(1:it);
-    rhoMaxToNow = rhoMax(1:it);    
-    refreshdata;
-    drawnow;
-
-end
-
-% Save the data
-if saveData
-    save multData measData rxTime;
-end
+% %----------------SDR 전송파트----------------------------------
+% % TODO:  Set parameters
+% % Set to true for loopback, else set to false
+% loopback = true; % true 1개 false 2개  
+% 
+% % Select to run TX and RX
+% runTx = true;
+% runRx = true;
+% 
+% % Flag indicating if pre-recorded data is to be used
+% usePreRecorded = false;
+% saveData = false;
+% 
+% % Compute the signal bandwidth
+% info = wlanNonHTOFDMInfo('NonHT-Data');
+% sigBW = (max(info.ActiveFFTIndices)-min(info.ActiveFFTIndices)+1)/info.FFTLength*fsamp;
+% 
+% 
+% % Intialize the communication objects
+% wlantx = WLANTx('psduLen', 512);
+% wlanrx = WLANRx('psduLen', 512);
+% fsamp = wlantx.fsamp;
+% ovRatio = 2;
+% fsampUp = fsamp*ovRatio;
+% txFilt = TxFilt('rateIn', fsamp, 'Fp', Fp, 'Fst', Fst, 'ovRatio', ovRatio, 'backoffAutoScale', true, ...
+%     'backoffLev', backoffLev);
+% rxFilt = RxFilt('ovRatio', ovRatio, 'rateIn', fsampUp, 'Fp', Fp, 'Fst', Fst, 'rxScale', true); % -> true로바꼇넼
+% 
+% 
+% % TODO:  Generate a random packet using wlantx()
+% %    x = ... 
+% x=wlantx();
+% xup=txFilt(x);
+% % Set the packet length
+% wlanrx.set('pktLen', length(x)); %? 원래패킷의 길이?
+% % clear previous instances
+% clear devtx devrx
+% % Set the parameters.  Note that we capture twice the number of samples
+% % to ensure that we always have a full packet in the window
+% nsampsFrameTx = length(xup); % 만샘플= 보내는  샘플갯수 =1프레임?
+% nsampsFrameRx = 2*length(xup); % 받는샘플갯수는 더많이
+% centerFrequency = 2.4e9; % 보내는 주파수 2.4GHZ 
+% 
+% % Run the creation function.  Skip this if we are using pre-recorded
+% % samples
+% if ~usePreRecorded
+%     [devtx, devrx] = plutoCreateTxRx(createTx = runTx, createRx = runRx, loopback = loopback, ...
+%         nsampsFrameTx = nsampsFrameTx, nsampsFrameRx=nsampsFrameRx, sampleRate = fsampUp, ...
+%         centerFrequency=centerFrequency);
+% 
+% end
+% 
+% 
+% if runTx
+%     % TODO:  Use the devtx.release() and devtx.transmitRepeat() commands to
+%     % continuously send xup
+%     devtx.release();
+%     devtx.transmitRepeat(xup);
+% 
+% end
+% 
+% 
+% if usePreRecorded  
+%     load singData;
+% else
+%     % 12비트 fullscale로 조정안하는 이유 -? RxFilt 에서 함
+% 
+%     % TODO:  Capture data at the upsampled rate.  Capture nsampsFrameRx.
+%     %   rup = rx.capture(...)    
+% 
+%     rup=devrx.capture(nsampsFrameRx);% 프레임당 샘플 명시!
+% 
+% end
+% 
+% 
+% 
+% % TODO:  Down-sample
+% %   r = rxFilt(...);
+% r=rxFilt(rup);
+% % TODO:  Run detection with the rx.pktDetect method.  
+% wlanrx.detectSTF(r);
+% 
+% % TODO:  Plot wlanrx.rhoSTF vs. time in us
+% t=0:1/fsamp:1/fsamp*(length(wlanrx.rhoSTF)-1); 
+% figure;
+% plot(t*1e6,wlanrx.rhoSTF) ; 
+% 
+% %--------------------Continous Monitoring-----------------------
+% % Number of iterations
+% nit = 100;
+% 
+% % Initialize arrays to store data
+% rhoMax = zeros(nit,1);                  
+% rxTime = zeros(nit,1);
+% 
+% % Initialize plots
+% f=figure;
+% title('채널의 딜레이 추정')
+% subplot(1,2,1);
+% rhoMaxToNow = [0,0];
+% timeToNow = [0,3];
+% prhoMax = plot(timeToNow,rhoMaxToNow, 'o-', 'LineWidth', 2);
+% ylim([0,1]);
+% xlabel('Time [sec]');
+% ylabel('rhoMax');
+% grid on;
+% 
+% subplot(1,2,2);
+% 
+% n = length(wlanrx.rhoSTF);
+% trho = (0:n-1)/fsamp*1e6;
+% rhoSTF = wlanrx.rhoSTF;
+% prho = plot(trho, rhoSTF);
+% ylim([0,1]);
+% xlabel('Time [us]');
+% ylabel('rho');
+% grid on;
+% 
+% 
+% % Set pointers to X and Y data for both plots
+% prhoMax.XDataSource = 'timeToNow';
+% prhoMax.YDataSource = 'rhoMaxToNow';
+% prho.XDataSource = 'trho';
+% prho.YDataSource = 'rhoSTF';
+% 
+% % Initialize array to save data
+% measData = zeros(nsampsFrameRx, nit);
+% 
+% % Load pre-recorded data if need
+% if usePreRecorded
+%     load multData;
+% 
+% end
+% 
+% for it = 1:nit
+% 
+% 
+%     if usePreRecorded
+%         rup = measData(:,it);
+% 
+%     else
+%         % TODO:  Get the data
+%         %  rup = devrx.capture(...)
+% 
+%          rup=devrx.capture(nsampsFrameRx);
+%         % Get the time
+%         if (it==1)
+%             tic; % 시작시간
+%         end    
+%         rxTime(it) = toc(); %끝난시간
+%     end
+%     if saveData
+%         measData(:,it) = rup;
+%     end
+% 
+% 
+% 
+%     % TODO:  Down-sample
+%     %   r = rxFilt(...);
+% 
+%     r=rxFilt(rup);
+%     % TODO:  Run detection with the wlanrx.pktDetect method.  
+%     wlanrx.detectSTF(r);
+% 
+% 
+%     % Get the STF correlation and create the vectors to plot
+%     n = length(wlanrx.rhoSTF);
+%     trho = (0:n-1)/fsamp*1e6;
+%     rhoSTF = wlanrx.rhoSTF;
+% 
+%     % TODO:  Get the maximum correlation
+%     %   rhoMax(it) = ...    
+%    rhoMax(it)=max(rhoSTF);wlanrx.detectSTF(r);
+% 
+%     % Update the plots   
+%     timeToNow = rxTime(1:it);
+%     rhoMaxToNow = rhoMax(1:it);    
+%     refreshdata;
+%     drawnow;
+%   exportgraphics(f, 'Lab7result.gif', 'Append', true);
+% end
+% 
