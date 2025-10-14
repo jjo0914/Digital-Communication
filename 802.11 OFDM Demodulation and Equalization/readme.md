@@ -9,8 +9,11 @@ SDR 송수신 결과
 ![](Lab8result.gif)
 
 Lab8: 메인 스크립트 \
+WLANTx:		:  802.11 Waveform 생성  \
 WLANPktAnalyzer.m    : OFDM패킷 추출 \
+TxFilt.m: 업샘플링  & 대역폭제한 필터 \
+RxFilt.m: 다운샘플링 & 대역폭제한 필터 \
+WLANDetect : STF 및 LTF 감지 \
 WLANRx.m            :  채널추정+이퀄라이제이션 \
 RandMPChan.m        : 랜덤 다중 경로 채널 \
-WLANTx:		:  802.11 Waveform 생성 
 plutoCreateTxR  : SDR송수신 객체 생성
