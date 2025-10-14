@@ -3,10 +3,10 @@
 2. matched-filter detector로 LTF감지 \
 
 결과
-!()[lab7result1.jpg] \
-!()[lab7result2.jpg] \
+![](lab7result1.jpg) \
+![](lab7result2.jpg) \
 채널 STF시작 위치 추정
-!()[lab7result3.gif]
+![](lab7result3.gif)
 
 
 \
