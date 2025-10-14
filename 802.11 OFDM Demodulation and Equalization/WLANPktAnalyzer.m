@@ -72,7 +72,7 @@ classdef WLANPktAnalyzer <  matlab.System
             % TODO:  From the array obj.sym, Get the modulations symbols for the
             % payload.  The payload starts at obj.nsymPre+1
             %    symPayload = obj.sym(...)
-            symPayload=obj.sym(:,obj.nsymPre+1:end)
+            symPayload=obj.sym(:,obj.nsymPre+1:end);
             % TODO:  Get the symbols for pilots and data using the
             % obj.info.PilotIndices and obj.info.DataIndices arrays
             %    obj.symPilot = symPayload(...);

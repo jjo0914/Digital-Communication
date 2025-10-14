@@ -88,8 +88,9 @@ classdef  RandMPChan < matlab.System
             dly0 = unifrnd(obj.dlyInitRange(1), obj.dlyInitRange(2), 1);
 
             % Generate random delays of other paths
-            obj.dly = dly0 + exprnd(obj.excessDlyMean, obj.npath,1);
-
+            obj.dly = dly0 + exprnd(obj.excessDlyMean, obj.npath,1); % 추가지연을 지수분포로뿌림 ->?  포아송분포로 근사? 뭐래
+                %포아송분포 : 각사건이 독립적인데 어떤시간내에서 평균 lamda번발생한다고 가정하면 어떤시간내에 몇번발생하는지 확률
+                %근데?..  
             % Generate random gains before normalization 
             obj.gain = obj.gainStd*randn(obj.npath,1);
 
