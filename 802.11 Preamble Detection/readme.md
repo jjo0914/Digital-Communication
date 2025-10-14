@@ -1,5 +1,5 @@
 802.11g Wi-fi 모델 패킷안에있는 프리엠블탐지하기 (WLAN toolbox 설치) 
-1. auto-corrlation 으로 STF감지 \
+1. auto-corrlation 으로 STF감지 
 2. matched-filter detector로 LTF감지 \
 \
 Lab8: 메인 스크립트 
