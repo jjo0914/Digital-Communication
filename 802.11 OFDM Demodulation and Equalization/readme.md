@@ -5,6 +5,9 @@
 802.11g Waveform -> OFDM 패킷추출 -> 랜덤 다중경로채널 적용 ->채널 추정 -> Symbol Equalization ->  SDR 송수신 
 
 
+SDR 송수신 결과
+![](Lab8result.gif)
+
 Lab8: 메인 스크립트 \
 WLANPktAnalyzer.m    : OFDM패킷 추출 \
 WLANRx.m            :  채널추정+이퀄라이제이션 \
