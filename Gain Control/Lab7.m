@@ -157,6 +157,7 @@ plot(gainRxTest,snrTheory);
 xlabel('gain(dB)')
 ylabel('SNR')
 legend('추정한 SNR값','이론 SNR값 ');
+xlim([-1.6 40])
 % Gain이 낮을수록 지랄나는 경우를 볼수 있는데 그 이유는
 % estChanResp에서 피크를 오검출하기때문이다.(SNR과대추정..)
 % (잡음 구간을 신호라고 판단)
@@ -184,7 +185,7 @@ for i = 1:ngain
     snrIt = zeros(ntrials,1);
 
     for it = 1:ntrials
-        
+
         % TODO:  Generate random noises and output with the non-linearity
         %    w1 = ...
         %    w2 = ...
@@ -223,7 +224,7 @@ legend('잡음만 자르고 추정한 SNR값','이론 SNR값 ');
 % 복붙
 % TODO:  Set parameters
 % Set to true for loopback, else set to false
-loopback = false;  
+loopback = true;  
 
 % Select to run TX and RX
 runTx = true;
@@ -235,7 +236,7 @@ clear tx rx
 % samples
 if ~usePreRecorded
     [tx, rx] = plutoCreateTxRx(createTx = runTx, createRx = runRx, loopback = loopback, ...
-        nsampsFrame = nsampsFrame, sampleRate = fsamp);
+        nsampsFrameTx=nsampsFrame,nsampsFrameRx = nsampsFrame, sampleRate = fsamp);
 end
 
 if runTx && ~usePreRecorded
@@ -282,12 +283,12 @@ if ~usePreRecorded
     y=rx.capture(nfft);
     % TODO:  Scale to floating point
     %   y = ...
-    y=single(y)./fullscale;   % double형태가 아니라 single형태로 해야할지도?
+    y=single(y)./2048;   % double형태가 아니라 single형태로 해야할지도?
     % Save the data 
     if saveData
         save rxDataSing y;
     end
-  
+
 else 
     % Load pre-recorded data
     load rxDataSing;
@@ -296,7 +297,7 @@ end
 
 % TODO:  Measure the channel response and SNR with the estChanResp function
 [channelresponse,SNR]=estChanResp(y,xfd,'normToNoise',true);
-fprintf("수신Gain20일때 snr : %f",SNR);
+fprintf("수신Gain20일때 snr : %f \n",SNR);
 % TODO:  Plot the channel response
 figure(7);
 plot(channelresponse);
@@ -334,12 +335,12 @@ for i = 1:ngain
     if ~usePreRecorded        
         rx.set('Gain', gainRx);
     end
-    
+
 
     % Loop over trials
     snrIt = zeros(ntrials,1);   
     for it = 1:ntrials
-                       
+
         if usePreRecorded
             y = ydat(:,i,it);
         else
@@ -354,7 +355,7 @@ for i = 1:ngain
         % TODO:  Estimate snr and store it snr(i,it)
         %   [~,~,snr(igain,it)] =  estChanResp(...);
         [~,~,snr(i,it)]=estChanResp(y,xfd,'normToNoise',true); % snr ngain*ntrials
-           
+
         % TODO: Measure the energy per sample in y and store it in ypow
         %   ypow(i,it) = ...
         ypow(i,it)=mean(abs(y).^2); % |y|.^2 순간전력 / 다더한걸 평균내면 평균전력=샘플당 에너지?
@@ -383,122 +384,122 @@ xlabel('sdr Gain 설정')
 ylabel('측정된 snr값')
 subplot(1,2,2);
 % TODO:  Plot rxBackoffMed vs. gainRxTest.  Label your axes
-plot(gainRxText,rxbackoff)
+plot(gainRxTest,rxbackoff)
 xlabel('sdr Gain 설정')
-ylabel('Gain적용된신호가 최대전력(2)에비해 몇db낮은지?');
+ylabel('Back off(dB)');
 
 
-%% d이제 rxbackoff가 12db이되게 Gain설정을(AGC) 코드로 짜라는거
-% 알빠노?싶
-% Number of iterations
-nit = 100;
-
-% RX backoff target in dB
-rxBackoffTgt = 12;
-
-% Initialize arrays to store data
-snr = zeros(nit,1);             
-rxBackoff = zeros(nit,1);       
-gainRx = zeros(nit,1);
-rxTime = zeros(nit,1);
-rxPow = zeros(nit,1);
-
-% Get pre-recorded data, if requested
-if usePreRecorded
-    load rxDatContinuous;
-else
-    ydat = zeros(nsampsFrame,nit);
-
-    rx.release();
-    rx.set('GainSource', 'Manual');
-end
-
-% Initialize RX gain
-gainInit = 0;
-gainRx(it) = gainInit;
-
-% Initialize plots
-figure(9);
-subplot(1,2,1);
-snrToNow = [0,0];
-timeToNow = [0,3];
-psnr = plot(timeToNow,snrToNow, 'o-', 'LineWidth', 2); %플롯생성
-ylim([0,60]);
-xlabel('Time [sec]');
-ylabel('SNR[dB]');
-grid on;
-
-subplot(1,2,2);
-rxPowToNow = [-50,50];
-ppow = plot(timeToNow,rxPowToNow, 'o-', 'LineWidth', 2); %플롯생성
-%ylim([-80,0]);
-xlabel('Time [sec]');
-ylabel('RX power [dB]');
-grid on;
-
-
-% Set pointers to X and Y data for both plots
-psnr.XDataSource = 'timeToNow';
-psnr.YDataSource = 'snrToNow';
-ppow.XDataSource = 'timeToNow';
-ppow.YDataSource = 'rxPowToNow';
-
-for it = 1:nit
-    
-    if usePreRecorded
-        y = ydat(:,it);
-    else
-        % TODO:  Set the gain to gainRx(it)
-        %   rx.set(...); 'Gain',숫자
-
-        % TODO:  Get the data and convert to floating point
-        %   y = ...
-    end    
-    ydat(:,it) = y;
-
-    % Get the time
-    if (it==1)
-        tic;  %시간측정함수
-    end    
-    rxTime(it) = toc(); %시간측정종료
-
-    % TODO:  Estimate the snr 
-    %   [~,~,snr(it)] =  estChanResp(...);
-
-    % TODO:  Estimate the energy per sample, RX backoff and RX power
-    %    ypow = ...
-    %    rxBackoff(it) = ...
-    %    rxPow(it) = ...
-    
-    if (it < nit-1)
-    
-        % TODO: Compute the gain step.  
-        %   step = ...
-
-        % Limit the step size
-        stepMax = 10;
-        step = max(min(stepMax, step), -stepMax);
-
-        % TODO:  Update the gain for the next iteration
-        %    gainRx(it+1) = ...
-        gainRx(it+1) = gainRx(it) + step;
-        
-        % Limit the gain to the max and minimum values and ensure the value
-        % an integer
-        gainRx(it+1) = max(gainRxMin, gainRx(it+1));
-        gainRx(it+1) = min(gainRxMax, gainRx(it+1));
-        gainRx(it+1) = round(gainRx(it+1));
-    end
-     
-    % Update the plots
-    snrToNow = snr(1:it);
-    timeToNow = rxTime(1:it);
-    rxPowToNow = rxPow(1:it);
-    refreshdata;
-    drawnow;
-
-end
-
-if saveData
-    save rxDatContinuous ydat;
-end
+% %% d이제 rxbackoff가 12db이되게 Gain설정을(AGC) 코드로 짜라는거
+% % 
+% % Number of iterations
+% nit = 100;
+% 
+% % RX backoff target in dB
+% rxBackoffTgt = 12;
+% 
+% % Initialize arrays to store data
+% snr = zeros(nit,1);             
+% rxBackoff = zeros(nit,1);       
+% gainRx = zeros(nit,1);
+% rxTime = zeros(nit,1);
+% rxPow = zeros(nit,1);
+% 
+% % Get pre-recorded data, if requested
+% if usePreRecorded
+%     load rxDatContinuous;
+% else
+%     ydat = zeros(nsampsFrame,nit);
+% 
+%     rx.release();
+%     rx.set('GainSource', 'Manual');
+% end
+% 
+% % Initialize RX gain
+% gainInit = 0;
+% gainRx(it) = gainInit;
+% 
+% % Initialize plots
+% figure(9);
+% subplot(1,2,1);
+% snrToNow = [0,0];
+% timeToNow = [0,3];
+% psnr = plot(timeToNow,snrToNow, 'o-', 'LineWidth', 2); %플롯생성
+% ylim([0,60]);
+% xlabel('Time [sec]');
+% ylabel('SNR[dB]');
+% grid on;
+% 
+% subplot(1,2,2);
+% rxPowToNow = [-50,50];
+% ppow = plot(timeToNow,rxPowToNow, 'o-', 'LineWidth', 2); %플롯생성
+% %ylim([-80,0]);
+% xlabel('Time [sec]');
+% ylabel('RX power [dB]');
+% grid on;
+% 
+% 
+% % Set pointers to X and Y data for both plots
+% psnr.XDataSource = 'timeToNow';
+% psnr.YDataSource = 'snrToNow';
+% ppow.XDataSource = 'timeToNow';
+% ppow.YDataSource = 'rxPowToNow';
+% 
+% for it = 1:nit
+% 
+%     if usePreRecorded
+%         y = ydat(:,it);
+%     else
+%         % TODO:  Set the gain to gainRx(it)
+%         %   rx.set(...); 'Gain',숫자
+% 
+%         % TODO:  Get the data and convert to floating point
+%         %   y = ...
+%     end    
+%     ydat(:,it) = y;
+% 
+%     % Get the time
+%     if (it==1)
+%         tic;  %시간측정함수
+%     end    
+%     rxTime(it) = toc(); %시간측정종료
+% 
+%     % TODO:  Estimate the snr 
+%     %   [~,~,snr(it)] =  estChanResp(...);
+% 
+%     % TODO:  Estimate the energy per sample, RX backoff and RX power
+%     %    ypow = ...
+%     %    rxBackoff(it) = ...
+%     %    rxPow(it) = ...
+% 
+%     if (it < nit-1)
+% 
+%         % TODO: Compute the gain step.  
+%         %   step = ...
+% 
+%         % Limit the step size
+%         stepMax = 10;
+%         step = max(min(stepMax, step), -stepMax);
+% 
+%         % TODO:  Update the gain for the next iteration
+%         %    gainRx(it+1) = ...
+%         gainRx(it+1) = gainRx(it) + step;
+% 
+%         % Limit the gain to the max and minimum values and ensure the value
+%         % an integer
+%         gainRx(it+1) = max(gainRxMin, gainRx(it+1));
+%         gainRx(it+1) = min(gainRxMax, gainRx(it+1));
+%         gainRx(it+1) = round(gainRx(it+1));
+%     end
+% 
+%     % Update the plots
+%     snrToNow = snr(1:it);
+%     timeToNow = rxTime(1:it);
+%     rxPowToNow = rxPow(1:it);
+%     refreshdata;
+%     drawnow;
+% 
+% end
+% 
+% if saveData
+%     save rxDatContinuous ydat;
+% end

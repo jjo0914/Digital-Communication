@@ -83,13 +83,12 @@ nsig=opt.nright+opt.nleft+1;
 Enoise=mean(abs(h(opt.nright+opt.nleft+1:end)).^2); %  =N0 단위는 W/HZ (N0는 일정 ㅇ)  h' - h =w'    (h=h'(일정길이)) 
 Etot=sum(abs(h(1:opt.nright+opt.nleft+1)).^2)+nsig*Enoise; % r'=h+w' 애는 Watt*sample
 
-Esig=Etot-Enoise; % 수정 . 원래:Etot-Enoise [J] -[W]
+Esig=Etot-nsig*Enoise; % 수정 . 원래:Etot-Enoise [J] -[W] 샘플곱하면 W->J
 %Esig=mean(abs(h(opt.nleft+1:opt.nright+opt.nleft+1)).^2)
 %snr=pow2db(Esig/Enoise) % 단위 안맞는이유? 이산신호는 원래 ?(Watt*[sample]/ Watt)=[sample] 다이렇다고?)
                         % sample이라는게 원래 무차원 단위래
                         % [총신호에너지/평균잡음전력]= SNR !! or [신호전력/N0]=SNR
-Psig = mean(abs(h(1:nsig)).^2) - Enoise;  % 신호창 평균전력 - 잡음전력
-snr  = pow2db( max(Psig,0) / Enoise );
+snr  = pow2db( Esig / Enoise );
 % TODO:  Normalize to the noise level
 %    h = ...
 if opt.normToNoise  % 그냥 플롯팅용이래
