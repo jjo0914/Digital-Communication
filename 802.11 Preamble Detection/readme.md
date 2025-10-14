@@ -6,7 +6,7 @@
 ![](lab7result1.jpg) \
 ![](lab7result2.jpg) \
 채널 STF시작 위치 추정
-![](lab7result3.gif) \
+![](Lab7result3.gif) \
 
 
 \
