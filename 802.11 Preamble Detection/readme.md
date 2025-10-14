@@ -1,6 +1,14 @@
 802.11g Wi-fi 모델 패킷안에있는 프리엠블탐지하기 (WLAN toolbox 설치) 
 1. auto-corrlation 으로 STF감지 
 2. matched-filter detector로 LTF감지 \
+
+결과
+!()[lab7result1.jpg] \
+!()[lab7result2.jpg] \
+채널 STF시작 위치 추정
+!()[lab7result3.gif]
+
+
 \
 Lab8: 메인 스크립트 
 WLANTx:  802.11 Waveform 생성 \
