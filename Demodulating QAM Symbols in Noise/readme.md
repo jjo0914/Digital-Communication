@@ -7,6 +7,7 @@
 Result  
 심볼  
 ![](lab6result1.jpg) \
+실제 BER 값 VS 이론값  
 ![](lab6result2.PNG) \
 ![](lab6Result3.jpg) \
   
