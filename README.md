@@ -1,7 +1,7 @@
 Digital Communications (교재: https://github.com/sdrangan/digitalcomm) \
 MATALB & SDR 실습
 
-Unit3:
+Unit3: Simulating and Sounding a Multi-Path Channel \
 Unit5: Simulating a Rayleigh Fading Process(?) \
 Unit6: Demodulating QAM Symbols in Noise \
 Unit7: Gain control \
