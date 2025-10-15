@@ -26,7 +26,9 @@ symbol_noise=db2mag(-EsN0); %            아데시벨에 마이너스 해줘야�
 w=(1/sqrt(2)).*(randn(nsym,1)+1i.*randn(nsym,1));
 r=sym+symbol_noise.*w;   % 심볼노이즈가 0.2812 인데 작으면 작을수록 경계가 뚜렷해지네
 scatterplot(sym);
+scatterplot(w);
 scatterplot(r);
+
 % 디모듈레이트 하기.
 % TODO
 % bithat = qamdemod(...)
@@ -101,6 +103,8 @@ hold on
 plot(EbN0Test,ber1(:,4));
 hold on
 legend(legStr(1:4));
+xlabel('Eb/N0')
+ylabel('BER')
 
-% 운지딱
+
 
