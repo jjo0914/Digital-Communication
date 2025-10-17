@@ -17,10 +17,10 @@
 				                                   10log(1024) -> 항상 30.1dB \
 				                                   즉, 정규화와 샘플갯수 때문 \
 
-\
+ \
 Lab3.m: 메인스크립트 \
 estChanResp.m: \
 plutCreateTxRx.m: SDR 송수신 객체생성 \
 SISOChan.m: 임펄스 신호를받고 각경로마다 샘플지연과 gain을 적용한 후 합해서  채널h를 만듬 \
 estChanResp.m: OFDM신호를 이용한 채널추정 \
-TxFilt.m: 업샘플링  & 대역폭제한 필터 \
+TxFilt.m: 업샘플링  & 대역폭제한 필터
