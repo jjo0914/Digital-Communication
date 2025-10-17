@@ -2,7 +2,7 @@
  \
  결과
  ![](lab2result1.jpg) \
- SDR 송수신
+ (SDR 송수신)
  ![](lab2result.gif)
  \
 Unit02_lab.m: 메인스크립트 \
