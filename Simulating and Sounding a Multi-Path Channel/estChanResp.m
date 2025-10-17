@@ -59,6 +59,8 @@ h=circshift(h,opt.nleft-idx); %문제되로 왼쪽8번째위치에위치
 
 % Normalize to the average energy signal level
 %정규화하는 이유는 몰라?유용하대..
+%아 이게 r수신할때 스케일링 하냐 안하냐 에 따라 크기가다르거든? 
+%근데 true로하면 r의 스케일링이 얼마인지 상관없어 <
 if opt.normToMean
     Emean = mean(abs(h).^2);
     h = h / sqrt(Emean);
