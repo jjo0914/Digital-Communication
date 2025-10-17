@@ -4,9 +4,13 @@
 2.SDR 루프백 채널h추정  
   
 채널설정 h로 구현하는법  
- 1: 임펄스함수만들어서 샘플지연 -> gain적용후 각 합 으로 총채널h만듬  
- 2. sinc함수만들어서 분수지연 conv (h,x) -> 정수지연 -> gain적용 1신호)  
-  
+ 1. 임펄스함수만들어서 샘플지연 -> gain적용후 각 합 으로 총채널h만듬  
+ 2. sinc함수만들어서 분수지연 conv (h,x) -> 정수지연 -> gain적용 (1경로 신호 일경우)
+\
+결과
+![](lab3result1.jpg)
+![](lab3result2.jpg)
+\
 Lab3.m: 메인스크립트
 estChanResp.m:
 plutCreateTxRx.m: SDR 송수신 객체생성
