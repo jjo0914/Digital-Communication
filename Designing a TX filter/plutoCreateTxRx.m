@@ -17,9 +17,9 @@ function [txdev,rxdev] = plutoCreateTxRx(options)
 % rxdev:  RX SDR object.  Set to [] if ~createRx
 
 arguments
-    options.createTx (1,1) {boolean} = true;
-    options.createRx (1,1) {boolean} = true;
-    options.loopback (1,1) {boolean} = false;
+    options.createTx (1,1) {logical} = true;
+    options.createRx (1,1) {logical} = true;
+    options.loopback (1,1) {logical} = false;
     options.sampleRate (1,1) double = 30.72e6;  
     options.nsampsFrameTx (1,1) int32 = 2^12;
     options.nsampsFrameRx (1,1) int32 = 2^12;

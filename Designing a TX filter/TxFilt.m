@@ -28,7 +28,7 @@ classdef TxFilt < matlab.System
                 opt.rateIn (1,1) {mustBeNumeric} = 20e6;
                 opt.Fp (1,1) {mustBeNumeric} = 20e6;
                 opt.Fst (1,1) {mustBeNumeric} = 25e6;
-                opt.backoffAutoScale (1,1) {boolean} = false;
+                opt.backoffAutoScale (1,1) {logical} = false;
                 opt.txFS (1,1) {mustBeNumeric} = 1.0;
                 opt.backoffLev (1,1) {mustBeNumeric} = 9.0;
                 opt.Astop (1,1) {mustBeNumeric} = 40;
