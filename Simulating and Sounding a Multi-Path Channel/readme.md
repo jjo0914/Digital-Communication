@@ -10,7 +10,7 @@
 결과
 ![](lab3result1.jpg)
 ![](lab3result2.jpg)
-![]() \
+![](lab3result3.gif) \
 루프백채널 h 에서 \
 피크가 항상 <0dB 가 아닌 +30dB인이유 :   추정채널H를 ifft->h 를 RMS 정규화 \
  				                                  정규화과정에서 h_peak의 ||.^2 이 거의 N으로맞춰짐 \
