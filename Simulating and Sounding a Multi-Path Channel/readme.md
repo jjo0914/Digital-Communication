@@ -10,10 +10,17 @@
 결과
 ![](lab3result1.jpg)
 ![](lab3result2.jpg)
+![]() \
+루프백채널 h 에서 \
+피크가 항상 <0dB 가 아닌 +30dB인이유 :   추정채널H를 ifft->h 를 RMS 정규화 \
+ 				                                  정규화과정에서 h_peak의 ||.^2 이 거의 N으로맞춰짐 \
+				                                   10log(1024) -> 항상 30.1dB \
+				                                   즉, 정규화와 샘플갯수 때문 \
+
 \
-Lab3.m: 메인스크립트
-estChanResp.m:
-plutCreateTxRx.m: SDR 송수신 객체생성
-SISOChan.m: 임펄스 신호를받고 각경로마다 샘플지연과 gain을 적용한 후 합해서  채널h를 만듬
-estChanResp.m: OFDM신호를 이용한 채널추정
-TxFilt.m: 업샘플링  & 대역폭제한 필터
+Lab3.m: 메인스크립트 \
+estChanResp.m: \
+plutCreateTxRx.m: SDR 송수신 객체생성 \
+SISOChan.m: 임펄스 신호를받고 각경로마다 샘플지연과 gain을 적용한 후 합해서  채널h를 만듬 \
+estChanResp.m: OFDM신호를 이용한 채널추정 \
+TxFilt.m: 업샘플링  & 대역폭제한 필터 \
